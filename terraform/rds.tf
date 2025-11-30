@@ -3,6 +3,16 @@ resource "random_password" "db_password" {
   special = true
 }
 
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name       = "tailscale-workshop-subnet-group"
+  subnet_ids = module.vpc.private_subnets
+
+  tags = {
+    Name    = "rds-subnet-group"
+    Project = "tailscale-workshop"
+  }
+}
+
 module "db" {
   source  = "terraform-aws-modules/rds/aws"
   version = "6.10.0"
@@ -10,9 +20,8 @@ module "db" {
   identifier = "tailscale-workshop-db"
 
   engine               = "postgres"
-  engine_version       = "16.3"
-  family               = "postgres16"
-  major_engine_version = "16"
+  family               = "postgres17"
+  major_engine_version = "17"
   instance_class       = "db.t3.micro"
 
   allocated_storage     = 20
@@ -23,7 +32,7 @@ module "db" {
   password = random_password.db_password.result
   port     = 5432
 
-  db_subnet_group_name   = module.vpc.database_subnet_group_name
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds.id]
 
   # Disable backups and multi-AZ for workshop (not recommended for production)
@@ -61,4 +70,26 @@ resource "aws_security_group" "rds" {
     Name    = "rds-security-group"
     Project = "tailscale-workshop"
   }
+}
+
+output "db_endpoint" {
+  description = "RDS database endpoint"
+  value       = module.db.db_instance_endpoint
+}
+
+output "db_name" {
+  description = "RDS database name"
+  value       = module.db.db_instance_name
+}
+
+output "db_username" {
+  description = "RDS database username"
+  value       = module.db.db_instance_username
+  sensitive   = true
+}
+
+output "db_password" {
+  description = "RDS database password"
+  value       = random_password.db_password.result
+  sensitive   = true
 }

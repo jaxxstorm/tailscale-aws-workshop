@@ -16,11 +16,23 @@ module "vpc" {
   azs              = ["us-west-2a", "us-west-2b", "us-west-2c"]
   private_subnets  = local.vpc_private_subnets
   public_subnets   = local.vpc_public_subnets
-  database_subnets = local.vpc_private_subnets
-
-  create_database_subnet_group = true
 
   tags = {
     Project = "tailscale-workshop"
   }
+}
+
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = module.vpc.vpc_id
+}
+
+output "private_subnets" {
+  description = "List of IDs of private subnets"
+  value       = module.vpc.private_subnets
+}
+
+output "public_subnets" {
+  description = "List of IDs of public subnets"
+  value       = module.vpc.public_subnets
 }
