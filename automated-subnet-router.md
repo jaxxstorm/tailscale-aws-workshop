@@ -433,3 +433,91 @@ terraform apply
 ```
 
 Confirm the prompt, and watch Terraform deploy your automatic subnet router!
+
+You should eventually see a subnet router appear in your Tailscale console again. You'll again notice that the subnet routes need approving:
+
+![](img/ec2-instance/subnet-router-approval.png)
+
+We can manually approve these routes for now, but we also want this process to be fully automated. So we'll make another change to our ACL. Head over to the "Access Control" setting in the Tailscale console:
+
+![](img/ec2-instance/acl-auto-approvers.png)
+
+Select add route as indicated, then populate the fields as shown:
+
+![](img/ec2-instance/auto-approvers-subnet.png)
+
+Hit save. We now need to make one small change to our Terraform code. Looking at our Tailscale module, we can add a tag to our Tailscale client that will now be able to auto approve those subnets. We have already defined our variable for tags, but we default it to an empty list:
+
+
+```hcl
+# tags to advertise, default is []
+variable "advertise_tags" {
+  description = "Tags to advertise for the subnet routers"
+  type        = list(string)
+  default     = []
+}
+
+
+module "amz-tailscale-client" {
+  source           = "tailscale/tailscale/cloudinit"
+  version          = "0.0.9"
+  auth_key         = var.tailscale_auth_key
+  enable_ssh       = true
+  hostname         = var.hostname
+  advertise_tags   = var.advertise_tags # used here
+  advertise_routes = [local.vpc_cidr]
+  accept_routes    = false
+  max_retries      = 10
+  retry_delay      = 10
+}
+```
+
+So we can simply update our `terraform.tfvars` file to add tags to our instance:
+
+```hcl
+tailscale_auth_key = "<your key>"
+key_pair_name = "lbriggs"
+advertise_tags = [ "tag:subnet-router" ]
+```
+
+Our auto scaling group has been configured so that if our _user data_ changes, the auto scaling group will replace the EC2 instance for us. We can see that in action in the Autoscaling group section of the AWS console
+
+![](img/ec2-instance/ec2-asg-replace.png)
+
+After waiting a few moments, we can now see in our Tailscale console a new EC2 instance:
+
+![](img/ec2-instance/ts-automated-approval.png)
+
+You'll notice, the routes were already approved! No need to manually approve them.
+
+We now have a fully automated EC2 subnet router, which is reliant to failures. We could also increase the number of instances in the autoscaling group to ensure high availability by simply changing the number of instances in Terraform like so:
+
+```hcl
+resource "aws_autoscaling_group" "main" {
+  name                = var.hostname
+  max_size            = 2 # change to 2
+  min_size            = 2 # change to 2
+  desired_capacity    = 2 # change to 2
+  health_check_type   = "EC2"
+  vpc_zone_identifier = module.vpc.private_subnets
+
+
+  launch_template {
+    id      = aws_launch_template.main.id
+    version = aws_launch_template.main.latest_version
+  }
+
+
+  instance_refresh {
+    strategy = "Rolling"
+  }
+
+  timeouts {
+    delete = "15m"
+  }
+}
+```
+
+This completes our automated section, congratulations!
+
+
