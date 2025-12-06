@@ -44,4 +44,8 @@ To successfully complete this workshop, ensure you have the following tools and 
   .terraform.lock.hcl
   ```
 
+## 5. Tailscale CLI
+
+You'll use the Tailscale CLI from your local machine during this working. Instructions can be found for all operating systems [here](https://tailscale.com/kb/1080/cli?tab=windows#using-the-tailscale-cli)
+
 
