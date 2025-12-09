@@ -187,7 +187,7 @@ If you head to your Tailscale admin console, you should see something like this
 
 ![](img/ec2-instance/admin-routes-advertised.png)
 
-However over the badge, and you'll see a message like this:
+Hover over the badge, and you'll see a message like this:
 
 > This machine has unapproved routes. Review this from the “Edit route settings...” option in the machine’s menu.
 

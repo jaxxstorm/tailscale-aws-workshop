@@ -440,6 +440,9 @@ You should eventually see a subnet router appear in your Tailscale console again
 
 We can manually approve these routes for now, but we also want this process to be fully automated. So we'll make another change to our ACL. Head over to the "Access Control" setting in the Tailscale console:
 
+
+Check that these next two images are available
+
 ![](img/ec2-instance/acl-auto-approvers.png)
 
 Select add route as indicated, then populate the fields as shown:

@@ -237,33 +237,6 @@ This RDS configuration creates:
 - The database is placed in the private subnets created by the VPC module
 - Outputs for the database connection details (endpoint, name, username, and password)
 
-### Update the VPC Configuration
-
-The RDS module needs database subnets. Update your `vpc.tf` to include database subnet configuration:
-
-```hcl
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.8.1"
-
-  name               = "tailscale-workshop-vpc"
-  cidr               = local.vpc_cidr
-  enable_nat_gateway = true
-  single_nat_gateway = true
-
-  azs              = ["us-west-2a", "us-west-2b", "us-west-2c"]
-  private_subnets  = local.vpc_private_subnets
-  public_subnets   = local.vpc_public_subnets
-  database_subnets = local.vpc_private_subnets
-
-  create_database_subnet_group = true
-
-  tags = {
-    Project = "tailscale-workshop"
-  }
-}
-```
-
 ### Apply the Database Configuration
 
 Run Terraform again to create the RDS instance:
