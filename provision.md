@@ -37,6 +37,10 @@ terraform {
       source  = "hashicorp/cloudinit"
       version = ">= 2.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.0"
+    }
   }
 }
 
@@ -45,7 +49,7 @@ provider "aws" {
 }
 ```
 
-These are the required providers we'll use throughout this workshop. The AWS provider enables interaction with AWS services, and the cloudinit provider will be used later for configuring EC2 instances.
+These are the required providers we'll use throughout this workshop. The AWS provider enables interaction with AWS services, the random provider is used for generating an RDS password shortly and the cloudinit provider will be used later for configuring EC2 instances
 
 ### Initialize Terraform
 
@@ -203,33 +207,6 @@ output "db_password" {
 }
 ```
 
-You'll also need to add the random provider to your `providers.tf`. Update it to include:
-
-```hcl
-terraform {
-  required_version = ">= 1.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.30"
-    }
-    cloudinit = {
-      source  = "hashicorp/cloudinit"
-      version = ">= 2.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = "us-west-2"
-}
-```
-
 This RDS configuration creates:
 - A PostgreSQL 16.3 database instance on a `db.t3.micro` instance (suitable for testing)
 - A randomly generated secure password for the database
@@ -242,7 +219,6 @@ This RDS configuration creates:
 Run Terraform again to create the RDS instance:
 
 ```bash
-terraform init  # Re-initialize to download the random provider
 terraform apply
 ```
 
